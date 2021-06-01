@@ -195,9 +195,87 @@ db.prototype.delete = function(query) {
 }
 
 
+db.prototype.updateOne = function(query,update,replace)
+{
+    if(this.object.data===undefined)
+        return false;
+    
+        if(_.isNumber(query))
+        {
+            query={id:query};
+        }
+
+        let found = _.findWhere(this.object.data,query);
+
+        if(found)
+        {
+
+            if(replace)
+            {
+                //index of found data
+                let index=_.indexOf(this.object.data, found);
+                this.object.data[index]=_.assign(update, {id: found.id});
+
+            }
+            else
+            {
+                _.assign(found,update);
+            }
+        }
+        else
+        {
+            console.log("Not Found!");
+            return false;
+        }
+
+        this.reopen();
+        return found;
+
+}
 
 
+db.prototype.updateMany = function(query, update,replace)
+{
+    if(this.object.data === undefined)
+         return false;
+    
+    if(_.isPlainObject(query)) {
+        var found = _.where(this.object.data,query);
+        if(found){
+            _.forEach(found, function(obj){
+                if(replace){
+                    var index = _.indexOf(this.object.data, obj);
+                    this.object.data[index] = _.assign(update, {id: obj.id});
+                } else {
+                    _.assign(obj, update);
+                }
+            }.bind(this));
+        }
+    }
 
+    if(_.isArray(query)){
+        _.forEach(query, function(obj){
+            if(_.isNumber(obj)){
+                return this._updateOne(obj,update,replace);
+            }
+            else
+            {
+                return this._updateMany(obj,update,replace)
+            }
+        }.bind(this));
+    }
+
+    this.reopen();
+    return found || false;
+
+}
+
+db.prototype.update = function(query,update,replace) {
+    if(_.isNumber(query))
+        return this.updateOne(query,update,replace);
+    
+    return this.updateMany(query, update,replace);
+}
 
 
 
