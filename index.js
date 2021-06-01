@@ -1,7 +1,12 @@
 const jsondb = require('./app.js');
 const db = jsondb('./data/db',{pretty: true});
 
-db.create({name: 'Rohan', Age: 20});
+// db.create([
+//     {name: 'Pikachu', types: ['electric']},
+//     {name: 'Bulbasaur', types: ['grass', 'poison']}
+// ]);
 
-let ans=db.get();
-console.log(ans);
+// let ans=db.get();
+// console.log(ans);
+
+db.delete([{name: 'Rattata'}, {types: ['grass']}]);

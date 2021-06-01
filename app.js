@@ -94,9 +94,8 @@ db.prototype.create = function(obj){
         return this.createMany(obj);
 }
 
-db.prototype.createOne = function(obj,write){
-    if(!_.isBoolean(write))
-         write = true;
+db.prototype.createOne = function(obj){
+    
     if(!_.isPlainObject(obj))
          return false;
 
@@ -106,16 +105,15 @@ db.prototype.createOne = function(obj,write){
     let created = _.assign(obj,newData);
     this.pushData(created);
 
-    if(write)
-        this.reopen();
+    
+    this.reopen();
     return created;
 
 }
 
-db.prototype.createMany = function(obj, write) {
+db.prototype.createMany = function(obj) {
 
-    if(!_.isBoolean(write))
-        write = true;
+    
 
     if(!_.isArray(obj))
         return false;
@@ -127,17 +125,16 @@ db.prototype.createMany = function(obj, write) {
         array.push(created);
     }.bind(this));
 
-    if(write)
-        this.reopen();
+   
+    this.reopen();
     return array;
 }
 
 
-db.prototype.deleteOne = function(identifier, write) {
+db.prototype.deleteOne = function(identifier) {
     if(this.object.data===undefined)
         return false;
-    if(!_.isBoolean(write))
-        write = true;
+    
     
         if(_.isNumber(identifier))
         {
@@ -151,8 +148,8 @@ db.prototype.deleteOne = function(identifier, write) {
             _.remove(this.object.data, {id: deleted.id});
         }
 
-        if(write)
-            this.reopen();
+      
+        this.reopen();
         
         return deleted;
     
@@ -160,11 +157,11 @@ db.prototype.deleteOne = function(identifier, write) {
 
 
 
-db.prototype.deleteMany = function(identifier, write) {
+db.prototype.deleteMany = function(identifier) {
     if(this.object.data === undefined)
         return false;
     
-    if(!_.isBoolean(write)) write = true;
+  
 
     if(_.isArray(identifier)) {
         _.forEach(identifier,function(index){
@@ -181,15 +178,21 @@ db.prototype.deleteMany = function(identifier, write) {
         _.remove(this.object.data, identifier);
     }
     
-    if(write)
-        this.reopen();
+   
+    this.reopen();
     
     return true;
         
 }
 
 
+db.prototype.delete = function(query) {
 
+    if(_.isNumber(query))
+        return this.deleteOne(query);
+    
+    return this.deleteMany(query);
+}
 
 
 
