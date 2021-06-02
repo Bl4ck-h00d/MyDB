@@ -36,7 +36,7 @@ db.prototype.start = function(){
     //For storing in deep path (creates directory if specified)
     mkdirp.sync(dirname(this.dbName));
     let object={
-        settings: {index: 1},
+        settings: {index: 1, model:{}},
         data: []
     };
     
@@ -87,6 +87,83 @@ db.prototype.pushData = function(obj) {
     return this.object.data.push(obj);
 }
 
+
+db.prototype.CLImodel = function(keys) {
+    if(!_.isArray(keys))
+        return false;
+    
+    let newModel = {};
+
+    if(this.object.settings.index){
+        newModel.id = this.object.settings.index;
+    }
+
+    let object = {}
+
+    for(let key in keys)
+    {
+        object[keys[key]] = "";
+    }
+
+    
+    var created = _.assign(object,newModel);
+    _.assign(this.object.settings.model,object)
+
+    this.reopen();
+}
+
+
+
+
+db.prototype.model = function(obj) {
+    if(_.isPlainObject(obj))
+    {
+        let newModel = {};
+
+        if(this.object.settings.index){
+            newModel.id = this.object.settings.index;
+        }
+
+        var created = _.assign(obj, newModel);
+        _.assign(this.object.settings.model,obj)
+        
+    }
+
+    this.reopen();
+
+
+}
+
+
+db.prototype.createByModel = function(array){
+    
+    if(!_.isArray(array))
+         return false;
+
+    let newData = {};
+       
+     _.assign(newData,this.object.settings.model);
+     
+    let index = 0;
+
+    for(let key in newData)
+    {
+        
+        newData[key]=array[index++];
+        
+    }
+   
+    newData.id = this.object.settings.index++;
+
+    this.pushData(newData);
+    
+   
+    this.reopen();
+    return newData;
+   
+}
+
+
 db.prototype.create = function(obj){
     if(_.isPlainObject(obj))
         return this.createOne(obj);
@@ -111,6 +188,8 @@ db.prototype.createOne = function(obj){
 
 }
 
+
+
 db.prototype.createMany = function(obj) {
 
     
@@ -131,24 +210,28 @@ db.prototype.createMany = function(obj) {
 }
 
 
-db.prototype.deleteOne = function(identifier) {
+db.prototype.deleteOne = function(identifier,write) {
     if(this.object.data===undefined)
         return false;
     
-    
+        if(!_.isBoolean(write)) write = true;
+
         if(_.isNumber(identifier))
         {
             identifier = {id:identifier};
         }
 
         let deleted = _.findWhere(this.object.data,identifier);
+        
+        
 
         if(deleted)
         {
+
             _.remove(this.object.data, {id: deleted.id});
         }
 
-      
+       if(write)
         this.reopen();
         
         return deleted;
@@ -157,10 +240,11 @@ db.prototype.deleteOne = function(identifier) {
 
 
 
-db.prototype.deleteMany = function(identifier) {
+db.prototype.deleteMany = function(identifier,write) {
     if(this.object.data === undefined)
         return false;
     
+    if(!_.isBoolean(write)) write = true;
   
 
     if(_.isArray(identifier)) {
@@ -178,8 +262,8 @@ db.prototype.deleteMany = function(identifier) {
         _.remove(this.object.data, identifier);
     }
     
-   
-    this.reopen();
+    if(write)
+        this.reopen();
     
     return true;
         
@@ -256,13 +340,18 @@ db.prototype.updateMany = function(query, update,replace)
     if(_.isArray(query)){
         _.forEach(query, function(obj){
             if(_.isNumber(obj)){
-                return this._updateOne(obj,update,replace);
+                return this.updateOne(obj,update,replace);
             }
             else
             {
-                return this._updateMany(obj,update,replace)
+                return this.updateMany(obj,update,replace)
             }
         }.bind(this));
+    }
+
+    if(_.isFunction(query)){
+        var found = _.filter(this.object.data,query);
+        return this.updateMany(found, update,replace);
     }
 
     this.reopen();
@@ -276,6 +365,78 @@ db.prototype.update = function(query,update,replace) {
     
     return this.updateMany(query, update,replace);
 }
+
+
+db.prototype.findOne = function(query) {
+    if(this.object.data === undefined)
+        return false;
+    
+    if(query === undefined)
+        query = {};
+    
+    if(_.isNumber(query))
+    {
+        query = {id:query};
+    }
+
+    return _.findWhere(this.object.data,query);
+}
+
+db.prototype.findMany = function(query) {
+
+    if(this.object.data === undefined)
+        return false;
+    
+    if(query === undefined)
+        query = {};
+    
+    if(_.isNumber(query))
+        query = {id:query};
+    
+    if(_.isArray(query))
+    {
+        var found = [];
+        _.forEach(query, function(data){
+            if(_.isNumber(data))
+            {
+                data = {id:data};
+            }
+            found.push(this.findOne(data));
+        }.bind(this));
+
+        return _.flattenDeep(found);
+    }
+
+
+    if(_.isFunction(query)) {
+        return _.filter(this.object.data,query)
+    }
+
+    return _.where(this.object.data, query);
+}
+
+db.prototype.findHelper = function (query, func) {
+
+    let find = this.findMany(query);
+    return func(find);
+}
+
+db.prototype.find = function(query) {
+    return this.findMany(query);
+}
+
+db.prototype.findAll = function(){
+    return this.find({});
+}
+
+db.prototype.findFirst = function(query) {
+    return this.findHelper(query,_.first);
+}
+
+db.prototype.findLast = function(query) {
+    return this.findHelper(query,_.last);
+}
+
 
 
 

@@ -1,7 +1,7 @@
 {
   "name": "MyDB",
   "version": "1.0.0",
-  "description": "",
+  "description": "package and CLI tool for easy database management",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "commander": "^7.2.0",
     "lo-jsondb": "^1.3.0",
     "lodash": "^3.10.1"
   },
