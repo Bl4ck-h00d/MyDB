@@ -27,7 +27,7 @@ program
     })
 
 program
-    .command('find id')
+    .command('find <id>')
     .description('Returns data with the given id if it exists')
     .action((id)=>{
         find(id);

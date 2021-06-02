@@ -22,7 +22,8 @@ const addData = (values) => {
 }
 
 const find = (id) => {
-        let data=db.find(id);
+        
+        let data=db.find(Number(id));
         console.info(data);
        
     
