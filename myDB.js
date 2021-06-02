@@ -9,7 +9,7 @@ const {
 
 program
     .version('1.0.0')
-    .description('CLI for MyDB')
+    .description('Welcome to MyDB! \n \n \n MyDB is a light-weight local JSON database storage application/tool\n\n You can start testing your application without running up a server.')
 
 
 program
